@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 class TweetInteraction(BaseModel):
     tweet_id: str
@@ -11,16 +11,18 @@ class TweetInteraction(BaseModel):
     ai_model_used: str
     confidence_score: float
 
+class ActivityLog(BaseModel):
+    timestamp: datetime
+    activity_type: str
+    description: str
+
 class BotMetrics(BaseModel):
     total_interactions: int
     successful_replies: int
     failed_replies: int
     average_response_time: float
     uptime: float
-    rate_limit_status: dict
+    rate_limit_status: str
 
-class ActivityLog(BaseModel):
-    timestamp: datetime
-    action: str
-    details: dict
-    status: str
+    class Config:
+        from_attributes = True

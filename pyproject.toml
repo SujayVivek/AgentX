@@ -89,3 +89,15 @@ reportUnnecessaryTypeIgnoreComment = true
 reportMatchNotExhaustive = true
 reportImplicitOverride = true
 reportShadowedImports = true
+
+[tool.poetry]
+name = "agentx"
+version = "0.1.0"
+description = "Twitter Bot Dashboard"
+authors = ["Your Name"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.0"
+uvicorn = "^0.15.0"
+sqlalchemy = "^1.4.23"

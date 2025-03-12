@@ -5,6 +5,9 @@ import StatsCard from '../components/StatsCard';
 import ActivityFeed from '../components/ActivityFeed';
 import BotStatusCard from '../components/BotStatusCard';
 import BotControls from '../components/BotControls';
+import MentionsManager from '../components/MentionsManager';
+import CreatePost from '../components/CreatePost';
+import { API_BASE_URL } from '../config';
 
 interface Stats {
   total_interactions: number;
@@ -29,9 +32,9 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       const [statsRes, activitiesRes, statusRes] = await Promise.all([
-        fetch('http://localhost:8000/api/stats'),
-        fetch('http://localhost:8000/api/recent-activities'),
-        fetch('http://localhost:8000/api/bot-status')
+        fetch(`${API_BASE_URL}/api/stats`),
+        fetch(`${API_BASE_URL}/api/recent-activities`),
+        fetch(`${API_BASE_URL}/api/bot-status`)
       ]);
 
       const [statsData, activitiesData, statusData] = await Promise.all([
@@ -50,7 +53,7 @@ export default function Dashboard() {
 
   const handleStartBot = async () => {
     try {
-      await fetch('http://localhost:8000/api/bot/start', { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/bot/start`, { method: 'POST' });
       setIsBotActive(true);
     } catch (error) {
       console.error('Error starting bot:', error);
@@ -59,7 +62,7 @@ export default function Dashboard() {
 
   const handleStopBot = async () => {
     try {
-      await fetch('http://localhost:8000/api/bot/stop', { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/bot/stop`, { method: 'POST' });
       setIsBotActive(false);
     } catch (error) {
       console.error('Error stopping bot:', error);
@@ -74,6 +77,9 @@ export default function Dashboard() {
       
       <Box sx={{ flexGrow: 1 }}>
         <Grid container spacing={3}>
+          <Grid xs={12}>
+            <CreatePost />
+          </Grid>
           <Grid xs={12} md={4}>
             <BotControls 
               isActive={isBotActive}
@@ -111,6 +117,10 @@ export default function Dashboard() {
           {/* Recent Activity Feed */}
           <Grid xs={12}>
             <ActivityFeed activities={activities} />
+          </Grid>
+
+          <Grid xs={12}>
+            <MentionsManager />
           </Grid>
         </Grid>
       </Box>

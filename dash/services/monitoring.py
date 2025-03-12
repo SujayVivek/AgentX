@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import List, Optional
-from ..models.db_models import TweetInteractionDB, ActivityLogDB, BotMetricsDB
-from ..models.analytics import TweetInteraction, BotMetrics, ActivityLog
+from db.models import TweetInteractionDB, ActivityLogDB, BotMetricsDB
+from models.analytics import TweetInteraction, BotMetrics, ActivityLog
 
 class MonitoringService:
     def __init__(self, db: Session):

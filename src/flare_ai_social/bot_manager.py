@@ -22,14 +22,38 @@ ERR_AI_PROVIDER_NOT_INITIALIZED = "AI provider must be initialized"
 class BotManager:
     """Manager class for handling multiple social media bots."""
 
-    def __init__(self) -> None:
-        """Initialize the BotManager."""
-        self.ai_provider: BaseAIProvider | None = None
+    def __init__(self):
+        self.ai_provider = None
+        self._bot_task = None
         self.telegram_bot: TelegramBot | None = None
         self.twitter_thread: threading.Thread | None = None
         self.active_bots: list[str] = []
         self.running = False
         self._telegram_polling_task: asyncio.Task | None = None
+
+    async def initialize_ai_provider(self):
+        # Placeholder for AI provider initialization
+        pass
+
+    async def generate_post(self, prompt: str) -> str:
+        # Placeholder for post generation
+        return f"Generated post based on: {prompt}"
+
+    async def create_post(self, content: str) -> bool:
+        # Placeholder for posting
+        return True
+
+    async def get_new_mentions(self):
+        # Placeholder for getting mentions
+        return []
+
+    async def generate_reply(self, text: str, custom_instructions: str = None) -> str:
+        # Placeholder for reply generation
+        return f"Generated reply to: {text}"
+
+    async def post_reply(self, mention_id: str, reply: str) -> bool:
+        # Placeholder for posting reply
+        return True
 
     def initialize_ai_provider(self) -> None:
         """Initialize the AI provider with either tuned model or default model."""
