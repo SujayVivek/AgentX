@@ -2,12 +2,13 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.database import engine, Base
-from models.db_models import TweetInteractionDB, ActivityLogDB, BotMetricsDB
+from db.database import engine
+from db.models import Base
 
 def init_db():
     Base.metadata.create_all(bind=engine)
-    print("Database tables created successfully!")
 
 if __name__ == "__main__":
-    init_db() 
+    print("Creating database tables...")
+    init_db()
+    print("Database tables created successfully!")

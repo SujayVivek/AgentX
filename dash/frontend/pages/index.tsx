@@ -4,6 +4,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import StatsCard from '../components/StatsCard';
 import ActivityFeed from '../components/ActivityFeed';
 import BotStatusCard from '../components/BotStatusCard';
+import BotControls from '../components/BotControls';
 
 interface Stats {
   total_interactions: number;
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [activities, setActivities] = useState([]);
   const [botStatus, setBotStatus] = useState(null);
+  const [isBotActive, setIsBotActive] = useState(false);
 
   useEffect(() => {
     // Fetch initial data
@@ -46,6 +48,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleStartBot = async () => {
+    try {
+      await fetch('http://localhost:8000/api/bot/start', { method: 'POST' });
+      setIsBotActive(true);
+    } catch (error) {
+      console.error('Error starting bot:', error);
+    }
+  };
+
+  const handleStopBot = async () => {
+    try {
+      await fetch('http://localhost:8000/api/bot/stop', { method: 'POST' });
+      setIsBotActive(false);
+    } catch (error) {
+      console.error('Error stopping bot:', error);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -54,6 +74,13 @@ export default function Dashboard() {
       
       <Box sx={{ flexGrow: 1 }}>
         <Grid container spacing={3}>
+          <Grid xs={12} md={4}>
+            <BotControls 
+              isActive={isBotActive}
+              onStart={handleStartBot}
+              onStop={handleStopBot}
+            />
+          </Grid>
           {/* Bot Status */}
           <Grid xs={12} md={4}>
             <BotStatusCard status={botStatus} />
