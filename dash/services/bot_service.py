@@ -113,8 +113,30 @@ class DashboardBotManager:
 
     async def generate_post(self, prompt: str) -> str:
         """Generate a post based on the user's prompt"""
-        return await self.bot_manager.generate_post(prompt)
+        if not self.bot_manager.ai_provider:
+            self.bot_manager.initialize_ai_provider()  # Initialize if not already done
+        
+        try:
+            # Generate content using the AI provider
+            response = await self.bot_manager.ai_provider.generate(
+                f"Generate a tweet about: {prompt}\n"
+                "Make it engaging and concise, suitable for Twitter/X platform."
+            )
+            return response
+        except Exception as e:
+            print(f"Error generating post: {e}")
+            raise
 
     async def create_post(self, content: str) -> bool:
         """Create a new post with the given content"""
-        return await self.bot_manager.create_post(content)
+        try:
+            # Assuming bot_manager has a method to post to Twitter
+            if not self.bot_manager.ai_provider:
+                self.bot_manager.initialize_ai_provider()
+            
+            # You might need to implement this method in your TwitterBot class
+            success = await self.bot_manager.create_post(content)
+            return success
+        except Exception as e:
+            print(f"Error creating post: {e}")
+            return False

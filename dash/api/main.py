@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-from db.database import get_db
+from db.database import get_db, init_db
 from services.monitoring import MonitoringService
 from services.bot_service import DashboardBotManager
 from db.models import TweetInteractionDB, ActivityLogDB, BotMetricsDB, BotStatus
@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 
 app = FastAPI()
 bot_manager = DashboardBotManager()
+
+# Initialize database tables
+init_db()
 
 # Update CORS configuration
 app.add_middleware(

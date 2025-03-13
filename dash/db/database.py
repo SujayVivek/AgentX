@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +18,12 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+# Import models so they can be created
+from db.models import TweetInteractionDB, ActivityLogDB, BotMetricsDB, BotStatus
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 # Dependency
 def get_db():

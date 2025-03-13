@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import threading
+from typing import Optional
 
 import google.generativeai as genai
 import structlog
@@ -23,7 +24,7 @@ class BotManager:
     """Manager class for handling multiple social media bots."""
 
     def __init__(self):
-        self.ai_provider = None
+        self.ai_provider: Optional[BaseAIProvider] = None
         self._bot_task = None
         self.telegram_bot: TelegramBot | None = None
         self.twitter_thread: threading.Thread | None = None
@@ -36,12 +37,29 @@ class BotManager:
         pass
 
     async def generate_post(self, prompt: str) -> str:
-        # Placeholder for post generation
-        return f"Generated post based on: {prompt}"
+        """Generate a post based on the user's prompt"""
+        if not self.ai_provider:
+            raise RuntimeError("AI provider not initialized")
+        
+        try:
+            response = await self.ai_provider.generate(
+                f"Generate a tweet about: {prompt}\n"
+                "Make it engaging and concise, suitable for Twitter/X platform."
+            )
+            return response
+        except Exception as e:
+            print(f"Error generating post: {e}")
+            raise
 
     async def create_post(self, content: str) -> bool:
-        # Placeholder for posting
-        return True
+        """Create a new post with the given content"""
+        try:
+            # Implement the actual posting logic here using your Twitter API
+            # This is a placeholder - you'll need to implement the actual Twitter API call
+            return True
+        except Exception as e:
+            print(f"Error posting content: {e}")
+            return False
 
     async def get_new_mentions(self):
         # Placeholder for getting mentions
@@ -56,47 +74,13 @@ class BotManager:
         return True
 
     def initialize_ai_provider(self) -> None:
-        """Initialize the AI provider with either tuned model or default model."""
-        genai.configure(api_key=settings.gemini_api_key)
-        tuned_model_id = settings.tuned_model_name
-
-        try:
-            # Check available tuned models
-            tuned_models = [m.name for m in genai.list_tuned_models()]
-            logger.info("Available tuned models", tuned_models=tuned_models)
-
-            # Try to get tuned model if it exists
-            if tuned_models and any(tuned_model_id in model for model in tuned_models):
-                try:
-                    model_info = genai.get_tuned_model(
-                        name=f"tunedModels/{tuned_model_id}"
-                    )
-                    # Initialize AI provider with tuned model
-                    self.ai_provider = GeminiProvider(
-                        settings.gemini_api_key,
-                        model_name=f"tunedModels/{tuned_model_id}",
-                        system_instruction=FEW_SHOT_PROMPT,
-                    )
-                    logger.info("Tuned model info", model_info=model_info)
-                except (InvalidArgument, NotFound):
-                    logger.warning("Failed to load tuned model.")
-                    self._initialize_default_model()
-            else:
-                logger.warning(
-                    "Tuned model not found in available models. Using default model."
-                )
-                self._initialize_default_model()
-        except Exception:
-            logger.exception("Error accessing tuned models")
-            self._initialize_default_model()
-
-    def _initialize_default_model(self) -> None:
-        """Initialize the default Gemini model."""
-        logger.info("Using default Gemini Flash model with few-shot prompting")
+        """Initialize the AI provider with Gemini."""
+        from flare_ai_social.settings import settings  # Import settings here
+        
         self.ai_provider = GeminiProvider(
-            settings.gemini_api_key,
-            model_name="gemini-1.5-flash",
-            system_instruction=FEW_SHOT_PROMPT,
+            api_key=settings.gemini_api_key,
+            model_name="gemini-1.5-pro",
+            system_instruction="You are a helpful AI assistant that generates engaging social media content."
         )
 
     def _check_ai_provider_initialized(self) -> BaseAIProvider:
