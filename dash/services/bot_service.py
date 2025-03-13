@@ -24,17 +24,22 @@ import asyncio
 from datetime import datetime
 from typing import List, Dict
 
+# Import the AI provider
+from flare_ai_social.ai import GeminiProvider
+from services.twitter_bot import TwitterBot  # Import the new TwitterBot
+from generate_post import generate_tweet  # Import the generate_tweet function
+
 class DashboardBotManager:
     def __init__(self):
-        self.bot_manager = BotManager()
+        self.twitter_bot = TwitterBot()
         self._bot_task = None
         self.pending_mentions = []
         self.generated_replies = {}
 
     async def start_bot(self, db: Session):
-        # Initialize AI and start Twitter bot
-        self.bot_manager.initialize_ai_provider()
-        success = self.bot_manager.start_twitter_bot()
+        # Initialize Twitter bot
+        self.twitter_bot.initialize_api()
+        success = True  # Assume success for now
         
         # Update database status
         status = BotStatus(
@@ -52,32 +57,22 @@ class DashboardBotManager:
 
     async def monitor_mentions(self):
         while True:
-            mentions = await self.bot_manager.get_new_mentions()
+            mentions = self.twitter_bot.get_mentions()
             for mention in mentions:
-                if mention.id not in self.pending_mentions:
+                if mention['id'] not in self.pending_mentions:
                     self.pending_mentions.append(mention)
             await asyncio.sleep(60)  # Check every minute
 
     async def get_pending_mentions(self) -> List[Dict]:
-        return [
-            {
-                'id': mention.id,
-                'text': mention.text,
-                'author': mention.author,
-                'created_at': mention.created_at
-            }
-            for mention in self.pending_mentions
-        ]
+        return self.pending_mentions
 
     async def generate_reply(self, mention_id: str, custom_prompt: str = None) -> str:
-        mention = next((m for m in self.pending_mentions if m.id == mention_id), None)
+        mention = next((m for m in self.pending_mentions if m['id'] == mention_id), None)
         if not mention:
             raise ValueError("Mention not found")
         
-        reply = await self.bot_manager.generate_reply(
-            mention.text,
-            custom_instructions=custom_prompt
-        )
+        # Placeholder for AI generation logic
+        reply = f"Generated reply to: {mention['text']}"
         self.generated_replies[mention_id] = reply
         return reply
 
@@ -85,40 +80,23 @@ class DashboardBotManager:
         if mention_id not in self.generated_replies:
             raise ValueError("No generated reply found for this mention")
         
-        success = await self.bot_manager.post_reply(
+        success = self.twitter_bot.reply_to_tweet(
             mention_id,
             self.generated_replies[mention_id]
         )
         
         if success:
             # Remove from pending mentions and generated replies
-            self.pending_mentions = [m for m in self.pending_mentions if m.id != mention_id]
+            self.pending_mentions = [m for m in self.pending_mentions if m['id'] != mention_id]
             del self.generated_replies[mention_id]
         
         return success
 
-    async def stop_bot(self, db: Session):
-        if self._bot_task:
-            self._bot_task.cancel()
-        await self.bot_manager.shutdown()
-        
-        # Update database status
-        status = BotStatus(
-            is_active=False,
-            last_check=datetime.utcnow(),
-            error_message=None
-        )
-        db.add(status)
-        db.commit()
-
     async def generate_post(self, prompt: str) -> str:
         """Generate a post based on the user's prompt"""
-        if not self.bot_manager.ai_provider:
-            self.bot_manager.initialize_ai_provider()  # Initialize if not already done
-        
         try:
-            # Generate content using the AI provider
-            response = await self.bot_manager.ai_provider.generate(
+            # Use the generate_tweet function from generate_post.py
+            response = generate_tweet(
                 f"Generate a tweet about: {prompt}\n"
                 "Make it engaging and concise, suitable for Twitter/X platform."
             )
@@ -129,14 +107,4 @@ class DashboardBotManager:
 
     async def create_post(self, content: str) -> bool:
         """Create a new post with the given content"""
-        try:
-            # Assuming bot_manager has a method to post to Twitter
-            if not self.bot_manager.ai_provider:
-                self.bot_manager.initialize_ai_provider()
-            
-            # You might need to implement this method in your TwitterBot class
-            success = await self.bot_manager.create_post(content)
-            return success
-        except Exception as e:
-            print(f"Error creating post: {e}")
-            return False
+        return self.twitter_bot.post_tweet(content)

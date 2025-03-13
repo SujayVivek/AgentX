@@ -14,11 +14,11 @@ import { API_BASE_URL } from '../config';
 
 export default function CreatePost() {
   const [open, setOpen] = useState(false);
-  const [prompt, setPrompt] = useState('');
-  const [generatedPost, setGeneratedPost] = useState('');
-  const [editedPost, setEditedPost] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isPosting, setIsPosting] = useState(false);
+  const [prompt, setPrompt] = useState<string>('');
+  const [generatedPost, setGeneratedPost] = useState<string>('');
+  const [editedPost, setEditedPost] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isPosting, setIsPosting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const handleOpen = () => setOpen(true);
@@ -35,7 +35,7 @@ export default function CreatePost() {
     setIsGenerating(true);
     setError('');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/generate-post`, {
+      const response = await fetch(`${API_BASE_URL}/api/generate-tweet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
@@ -62,7 +62,7 @@ export default function CreatePost() {
     
     setIsPosting(true);
     try {
-      const response = await fetch('/api/post', {
+      const response = await fetch(`${API_BASE_URL}/api/post`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: editedPost })

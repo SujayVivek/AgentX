@@ -10,7 +10,7 @@ class BaseAIProvider(ABC):
         pass
 
 class GeminiProvider(BaseAIProvider):
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-pro", system_instruction: Optional[str] = None):
+    def __init__(self, api_key: str, model_name: str = "gemini-pro", system_instruction: Optional[str] = None):
         self.model_name = model_name
         self.system_instruction = system_instruction
         genai.configure(api_key=api_key)
@@ -25,10 +25,10 @@ class GeminiProvider(BaseAIProvider):
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(
                 None,
-                partial(self.model.generate_content, full_prompt)
+                lambda: self.model.generate_content(full_prompt).text
             )
             
-            return response.text
+            return response
         except Exception as e:
             print(f"Error in Gemini generation: {e}")
-            raise 
+            raise

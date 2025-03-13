@@ -6,6 +6,7 @@ from services.monitoring import MonitoringService
 from services.bot_service import DashboardBotManager
 from db.models import TweetInteractionDB, ActivityLogDB, BotMetricsDB, BotStatus
 from datetime import datetime, timedelta
+from generate_post import generate_tweet  # Import the generate_tweet function
 
 app = FastAPI()
 bot_manager = DashboardBotManager()
@@ -24,22 +25,8 @@ app.add_middleware(
 
 @app.get("/api/stats")
 async def get_stats(db: Session = Depends(get_db)):
-    total = db.query(TweetInteractionDB).count()
-    successful = db.query(TweetInteractionDB).filter(TweetInteractionDB.status == "success").count()
-    
-    # Calculate average response time for last 24 hours
-    yesterday = datetime.utcnow() - timedelta(days=1)
-    recent_interactions = db.query(TweetInteractionDB)\
-        .filter(TweetInteractionDB.timestamp >= yesterday)\
-        .all()
-    
-    avg_response_time = sum(i.response_time for i in recent_interactions) / len(recent_interactions) if recent_interactions else 0
-    
-    return {
-        "total_interactions": total,
-        "successful_replies": successful,
-        "average_response_time": f"{avg_response_time:.2f}s"
-    }
+    monitoring_service = MonitoringService(db)
+    return await monitoring_service.get_metrics()
 
 @app.get("/api/recent-activities")
 async def get_recent_activities(
@@ -114,5 +101,17 @@ async def create_post(request: dict):
         if success:
             return {"status": "success"}
         raise HTTPException(status_code=500, detail="Failed to create post")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/generate-tweet")
+async def generate_tweet_endpoint(request: dict):
+    try:
+        prompt = request.get("prompt")
+        if not prompt:
+            raise HTTPException(status_code=400, detail="Prompt is required")
+        
+        generated_post = await bot_manager.generate_post(prompt)
+        return {"post": generated_post}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
